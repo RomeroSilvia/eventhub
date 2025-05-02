@@ -1,0 +1,62 @@
+[
+  {
+    "model": "app.rating",
+    "pk": 1,
+    "fields": {
+      "titulo": "Evento entretenido con espacio para mejorar",
+      "texto": "La organización fue aceptable y los juegos fueron divertidos, aunque la comida llegó tarde.",
+      "fecha_creacion": "2025-04-28T10:00:00Z",
+      "calificacion": 3,
+      "usuario": 1,
+      "evento": 1
+    }
+  },
+  {
+    "model": "app.rating",
+    "pk": 2,
+    "fields": {
+      "titulo": "Gran experiencia",
+      "texto": "Todo estuvo excelente, desde la ambientación hasta la atención del personal. Muy recomendable.",
+      "fecha_creacion": "2025-04-28T10:15:00Z",
+      "calificacion": 5,
+      "usuario": 2,
+      "evento": 1
+    }
+  },
+  {
+    "model": "app.rating",
+    "pk": 3,
+    "fields": {
+      "titulo": "Interesante, pero con detalles a corregir",
+      "texto": "Me gustó la temática del evento, pero hubo demasiadas demoras entre actividades.",
+      "fecha_creacion": "2025-04-30T10:00:00Z",
+      "calificacion": 2,
+      "usuario": 3,
+      "evento": 2
+    }
+  },
+  {
+    "model": "app.rating",
+    "pk": 4,
+    "fields": {
+      "titulo": "No cumplió mis expectativas",
+      "texto": "El acceso fue complicado y no había buena señalización. La espera fue larga y desorganizada.",
+      "fecha_creacion": "2025-04-28T12:30:00Z",
+      "calificacion": 1,
+      "usuario": 4,
+      "evento": 2
+    }
+  },
+  {
+    "model": "app.rating",
+    "pk": 5,
+    "fields": {
+      "titulo": "Una propuesta distinta y bien lograda",
+      "texto": "Buena experiencia en general. Me gustó el enfoque creativo y la puntualidad.",
+      "fecha_creacion": "2025-04-30T10:00:00Z",
+      "calificacion": 4,
+      "usuario": 1,
+      "evento": 3
+    }
+  }
+]
