@@ -1,13 +1,27 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 from django.test import TestCase
-from app.models import Event, Rating
+from app.models import Event, Rating, Venue
 
+User = get_user_model()
 
 class RatingAverageCalculation(TestCase):
 
     def setUp(self):
         self.organizer = User.objects.create_user(username="organizer", password="pass")
-        self.event = Event.objects.create(title="Evento Test", organizer=self.organizer)
+        self.venue_mocked = Venue.objects.create(
+            name="Auditorio Nacional",
+            address="60 y 124",
+            capacity=5000,
+            country="ARG",  
+            city="La Plata"
+        )
+        self.event = Event.objects.create(
+            title="Evento Test", 
+            organizer=self.organizer, 
+            scheduled_at=timezone.now(), 
+            venue=self.venue_mocked
+        )
 
     def test_rating_average_calculation(self):
         Rating.objects.create(
