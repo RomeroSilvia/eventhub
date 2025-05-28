@@ -11,6 +11,7 @@ from cities_light.models import City
 from decimal import Decimal
 import random, string
 from django.core.exceptions import ValidationError
+import re
 
 
 def save(method):
@@ -306,7 +307,8 @@ class TicketForm(forms.ModelForm):
     card_holder = forms.CharField(max_length=100, required=True, label='Nombre del Titular *')
     expiration_date = forms.CharField(max_length=5, required=True, label='Expiración (MM/YY *)')
     cvc = forms.CharField(max_length=3, required=True, label='CVC *')
-    
+        
+        
 class Notification(models.Model):
     title = models.CharField(max_length=50)
     message = models.CharField(max_length=100)
