@@ -72,6 +72,11 @@
                         <div class="input-group">
                             {{ form.card_number|add_class:"form-control" }}
                         </div>
+                        {% if form.card_number.errors %}
+                         <div class="text-danger small mt-1">
+                        {{ form.card_number.errors|striptags }}
+                        </div>
+                        {% endif %}
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -79,6 +84,11 @@
                         <div class="input-group">
                             {{ form.card_holder|add_class:"form-control" }}
                         </div>
+                        {% if form.card_number.errors %}
+                             <div class="text-danger small mt-1">
+                                {{ form.card_number.errors|striptags }}
+                             </div>
+                         {% endif %}
                     </div>
                 </div>
 
@@ -88,6 +98,11 @@
                         <div class="input-group">
                             {{ form.expiration_date|add_class:"form-control" }}
                         </div>
+                        {% if form.expiration_date.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.expiration_date.errors|striptags }}
+                      </div>
+                     {% endif %}
                     </div>
 
                     <div class="col-md-6 mb-3">
@@ -95,6 +110,11 @@
                         <div class="input-group">
                             {{ form.cvc|add_class:"form-control" }}
                         </div>
+                        {% if form.cvc.errors %}
+                    <div class="text-danger small mt-1">
+                        {{ form.cvc.errors|striptags }}
+                         </div>
+                         {% endif %}
                     </div>
                 </div>
             </div>
