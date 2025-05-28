@@ -20,45 +20,55 @@
 
                             <div>
                                 <label for="title" class="form-label">Título del Evento</label>
-                                <input class="form-control"
+                                <input class="form-control {% if errors.title %}is-invalid{% endif %}"
                                     id="title"
                                     required
                                     type="text"
                                     value="{{ event.title|default_if_none:'' }}"
                                     name="title" />
+                                {% if errors.title %}
+                                    <div class="invalid-feedback">{{ errors.title }}</div>
+                                {% endif %}
                             </div>
 
                             <div>
                                 <label for="description" class="form-label">Descripción</label>
                                 <textarea
-                                    class="form-control"
+                                    class="form-control {% if errors.description %}is-invalid{% endif %}"
                                     id="description"
                                     name="description"
                                     rows="4"
-                                    required>{{ event.description|default_if_none:'' }}</textarea>
+                                    required>{{ event.description|default_if_none:'' }}
+                                </textarea>
+                                {% if errors.description %}
+                                    <div class="invalid-feedback">{{ errors.description }}</div>
+                                {% endif %}
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6">
                                     <label for="date" class="form-label">Fecha</label>
                                     <input
-                                        class="form-control"
+                                        class="form-control {% if errors.scheduled_at %}is-invalid{% endif %}"
                                         id="date"
                                         required
                                         type="date"
-                                        value="{{ event.scheduled_at|date:'Y-m-d' }}"
+                                        value="{{ event.scheduled_at|date:'Y-m-d'}}"
                                         name="date" />
                                 </div>
                                 <div class="col-md-6">
                                     <label for="time" class="form-label">Hora</label>
                                     <input
-                                        class="form-control"
+                                        class="form-control {% if errors.scheduled_at %}is-invalid{% endif %}"
                                         id="time"
                                         required
                                         type="time"
                                         value="{{ event.scheduled_at|date:'H:i' }}"
                                         name="time" />
                                 </div>
+                                {% if errors.scheduled_at %}
+                                    <div class="invalid-feedback d-block">{{ errors.scheduled_at }}</div>
+                                {% endif %}
                             </div>
 
                             <div class="row">

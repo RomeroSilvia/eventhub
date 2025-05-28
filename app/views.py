@@ -308,6 +308,7 @@ def event_delete(request, id):
 @login_required
 def event_form(request, id=None):
     user = request.user
+    errors = {}
 
     # Obtener todos los venues disponibles
     venues = Venue.objects.all()
@@ -336,6 +337,13 @@ def event_form(request, id=None):
             success, event_or_errors = Event.new(title, description, scheduled_at, request.user, category_ids, venue)
             if not success:
                 errors = event_or_errors
+                event = {
+                    'title': title,
+                    'description': description,
+                    'scheduled_at': scheduled_at,
+                }
+                event_categories_ids = list(map(int, category_ids))
+                event_venue = Venue.objects.filter(pk=venue_id).first()
                 
         else:
             event = get_object_or_404(Event, pk=id)
@@ -384,6 +392,7 @@ def event_form(request, id=None):
         'user_is_organizer': user.is_organizer,
         'venues': venues, 
         'event_venue': event_venue, 
+        'errors' : errors if 'errors' in locals() else {},
     }
 
     return render(request, 'app/event_form.html', context)

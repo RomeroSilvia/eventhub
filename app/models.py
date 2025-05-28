@@ -1,5 +1,5 @@
 
-import datetime
+from datetime import datetime
 from django import forms
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -137,6 +137,11 @@ class Event(models.Model):
 
         if description == "":
             errors["description"] = "Por favor ingrese una descripcion"
+        
+        if not isinstance(scheduled_at, datetime):
+            errors["scheduled_at"] = "La fecha programada no es válida."
+        elif scheduled_at <= timezone.now():
+            errors["scheduled_at"] = "No se permiten fecha o hora anteriores a la actual."
 
         return errors
 
