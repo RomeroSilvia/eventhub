@@ -32,24 +32,45 @@
                         <div class="input-group">
                             {{ form.card_number }}
                         </div>
+                        {% if form.card_number.errors %}
+                         <div class="text-danger small mt-1">
+                        {{ form.card_number.errors|striptags }}
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="{{ form.card_holder.id_for_label }}" class="form-label">Titular</label>
                         <div class="input-group">
                             {{ form.card_holder }}
                         </div>
+                        {% if form.card_number.errors %}
+                             <div class="text-danger small mt-1">
+                                {{ form.card_number.errors|striptags }}
+                             </div>
+                         {% endif %}
+                        
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="{{ form.expiration_date.id_for_label }}" class="form-label">Fecha de expiración</label>
                         <div class="input-group">
                             {{ form.expiration_date }}
                         </div>
+                        {% if form.expiration_date.errors %}
+                        <div class="text-danger small mt-1">
+                        {{ form.expiration_date.errors|striptags }}
+                      </div>
+                     {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="{{ form.cvc.id_for_label }}" class="form-label">CVC</label>
                         <div class="input-group">
                             {{ form.cvc }}
                         </div>
+                         {% if form.cvc.errors %}
+                        <div class="text-danger small mt-1">
+                        {{ form.cvc.errors|striptags }}
+                         </div>
+                         {% endif %}
                     </div>
                 </div>
             </div>
@@ -78,50 +99,35 @@
 {% block extra_head %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    document.getElementById("edit-form").addEventListener("submit", function (e) {
-        let valid = true;
+    
+    var buyDate = new Date("{{ ticket.buy_date|date:'c' }}");
+    console.log("Fecha de compra del ticket: ", buyDate);
 
-        const quantityInput = document.getElementById("id_quantity");
-        const quantity = parseInt(quantityInput.value);
-        if (isNaN(quantity) || quantity < 1) {
-            valid = false;
-            alert("Debe seleccionar al menos un ticket.");
-            quantityInput.focus();
-        }
+    if (isNaN(buyDate)) {
+        console.log("La fecha no es válida");
+    }
 
-        const cardNumberInput = document.getElementById("id_card_number");
-        if (!cardNumberInput.value.trim()) {
-            valid = false;
-            alert("El número de tarjeta es obligatorio.");
-            cardNumberInput.focus();
-        }
+    var limitTime = new Date(buyDate.getTime() + 30 * 60000);
+    console.log("Tiempo límite: ", limitTime);
 
-        const cardHolderInput = document.getElementById("id_card_holder");
-        if (!cardHolderInput.value.trim()) {
-            valid = false;
-            alert("El nombre del titular es obligatorio.");
-            cardHolderInput.focus();
-        }
+    function updateTimer() {
+    var now = new Date();
+    var remainingTime = limitTime - now;
+    
+    if (remainingTime <= 0) {
+        document.getElementById("time-remaining").innerHTML = 'El tiempo ha expirado. <a href="{% url "refound" %}" class="btn btn-link">¿Necesitás ayuda? <i class="bi bi-headset"></i></a>';
 
-        const expirationInput = document.getElementById("id_expiration_date");
-        if (!expirationInput.value.trim()) {
-            valid = false;
-            alert("La fecha de expiración es obligatoria.");
-            expirationInput.focus();
-        }
+        document.getElementById("edit-form").style.display = "none";
+        document.getElementById("refund-section").style.display = "block";
+    } else {
+        var minutes = Math.floor(remainingTime / 60000);
+        var seconds = Math.floor((remainingTime % 60000) / 1000);
+        document.getElementById("time-remaining").innerHTML = minutes + " minutos y " + seconds + " segundos.";
+    }
+}
 
-        const cvcInput = document.getElementById("id_cvc");
-        const cvc = cvcInput.value.trim();
-        if (!/^\d{3,4}$/.test(cvc)) {
-            valid = false;
-            alert("El CVC debe tener 3 o 4 dígitos.");
-            cvcInput.focus();
-        }
 
-        if (!valid) {
-            e.preventDefault(); // Evita el envío si hay errores
-        }
-    });
+    setInterval(updateTimer, 1000);
 </script>
 
 {% endblock %}
