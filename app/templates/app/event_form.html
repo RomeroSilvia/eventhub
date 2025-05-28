@@ -24,7 +24,7 @@
                                     id="title"
                                     required
                                     type="text"
-                                    value="{{ event.title|default_if_none:'' }}"
+                                    value="{% if request.method == 'POST' %}{{ request.POST.title }}{% else %}{{ event.title|default_if_none:'' }}{% endif %}" 
                                     name="title" />
                                 {% if errors.title %}
                                     <div class="invalid-feedback">{{ errors.title }}</div>
@@ -38,7 +38,7 @@
                                     id="description"
                                     name="description"
                                     rows="4"
-                                    required>{{ event.description|default_if_none:'' }}
+                                    required>{% if request.method == 'POST' %}{{ request.POST.description }}{% else %}{{ event.description|default_if_none:'' }}{% endif %}
                                 </textarea>
                                 {% if errors.description %}
                                     <div class="invalid-feedback">{{ errors.description }}</div>
@@ -53,7 +53,7 @@
                                         id="date"
                                         required
                                         type="date"
-                                        value="{{ event.scheduled_at|date:'Y-m-d'}}"
+                                        value="{% if request.method == 'POST' %}{{ request.POST.date }}{% else %}{{ event.scheduled_at|date:'Y-m-d' }}{% endif %}"
                                         name="date" />
                                 </div>
                                 <div class="col-md-6">
@@ -63,7 +63,7 @@
                                         id="time"
                                         required
                                         type="time"
-                                        value="{{ event.scheduled_at|date:'H:i' }}"
+                                        value="{% if request.method == 'POST' %}{{ request.POST.time }}{% else %}{{ event.scheduled_at|date:'H:i' }}{% endif %}"
                                         name="time" />
                                 </div>
                                 {% if errors.scheduled_at %}
