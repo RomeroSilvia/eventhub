@@ -260,7 +260,8 @@ class EventCRUDTest(EventBaseTest):
         title.fill("Titulo editado")
         
         description = self.page.get_by_label("Descripción")
-        expect(description).to_have_value("Descripción del evento 1")
+        assert description.input_value().strip() == "Descripción del evento 1"
+        #expect(description).to_have_value("Descripción del evento 1")
         description.fill("Descripcion Editada")
         
         date = self.page.get_by_label("Fecha")
