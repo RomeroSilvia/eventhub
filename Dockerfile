@@ -8,6 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 800
+EXPOSE 8000
 
 CMD ["sh", "-c", "python manage.py migrate && python manage.py migrate cities_light && python manage.py loaddata fixtures/*.json && python manage.py runserver 0.0.0.0:8000"]
