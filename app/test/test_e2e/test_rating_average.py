@@ -49,11 +49,13 @@ class RatingAverageVisibilityTest(BaseE2ETest):
         self.login_user("organizer","password123")
         self.page.goto(f"{self.live_server_url}/events/{self.mocked_event1.pk}/")
         expect(self.page.get_by_text("Calificación promedio")).to_be_visible()
+        expect(self.page.get_by_text("3,0 / 5")).to_be_visible()
     
     def test_rating_average_not_visible_to_other_user(self):
         self.login_user("usuario","password123")
         self.page.goto(f"{self.live_server_url}/events/{self.mocked_event1.pk}/")
         expect(self.page.get_by_text("Calificación promedio")).not_to_be_visible()
+        expect(self.page.get_by_text("3,0 / 5")).not_to_be_visible()
 
 
         
