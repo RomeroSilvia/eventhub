@@ -32,24 +32,45 @@
                         <div class="input-group">
                             {{ form.card_number }}
                         </div>
+                        {% if form.card_number.errors %}
+                         <div class="text-danger small mt-1">
+                        {{ form.card_number.errors|striptags }}
+                        </div>
+                        {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="{{ form.card_holder.id_for_label }}" class="form-label">Titular</label>
                         <div class="input-group">
                             {{ form.card_holder }}
                         </div>
+                        {% if form.card_number.errors %}
+                             <div class="text-danger small mt-1">
+                                {{ form.card_number.errors|striptags }}
+                             </div>
+                         {% endif %}
+                        
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="{{ form.expiration_date.id_for_label }}" class="form-label">Fecha de expiración</label>
                         <div class="input-group">
                             {{ form.expiration_date }}
                         </div>
+                        {% if form.expiration_date.errors %}
+                        <div class="text-danger small mt-1">
+                        {{ form.expiration_date.errors|striptags }}
+                      </div>
+                     {% endif %}
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="{{ form.cvc.id_for_label }}" class="form-label">CVC</label>
                         <div class="input-group">
                             {{ form.cvc }}
                         </div>
+                         {% if form.cvc.errors %}
+                        <div class="text-danger small mt-1">
+                        {{ form.cvc.errors|striptags }}
+                         </div>
+                         {% endif %}
                     </div>
                 </div>
             </div>

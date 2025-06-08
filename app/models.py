@@ -8,6 +8,11 @@ from django import forms
 from django.utils import timezone
 from django_countries.fields import CountryField
 from cities_light.models import City
+from decimal import Decimal
+import random, string
+from django.core.exceptions import ValidationError
+import re
+
 
 def save(method):
     def wrapper(self, *args, **kwargs):
@@ -105,6 +110,7 @@ class Event(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name='events')
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 
     @property
     def tickets_sold(self):
@@ -146,7 +152,8 @@ class Event(models.Model):
         return errors
 
     @classmethod
-    def new(cls, title, description, scheduled_at, organizer, categories=None, venue=None):
+    def new(cls, title, description, scheduled_at, organizer, categories=None, venue=None, price=0.00):
+        # Validaciones y creación
         errors = cls.validate(title, description, scheduled_at)
         if not organizer:
             errors["organizer"] = "El organizador es obligatorio"
@@ -160,7 +167,8 @@ class Event(models.Model):
             description=description,
             scheduled_at=scheduled_at,
             organizer=organizer,
-            venue=venue
+            venue=venue,
+            price=price
         )
         if categories:
             event.categories.set(categories)
@@ -182,6 +190,35 @@ class Event(models.Model):
 
         self.save()
 
+class Coupon(models.Model):
+    id = models.AutoField(primary_key=True)
+    event = models.ForeignKey('Event', on_delete=models.CASCADE, related_name='coupons')
+    code = models.CharField(max_length=10, unique=True, editable=False)
+    discount_percent = models.PositiveSmallIntegerField()
+    active = models.BooleanField(default=True)
+    organizer = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expiration_date = models.DateTimeField()
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = self.generate_unique_code()
+        super().save(*args, **kwargs)
+
+    def generate_unique_code(self, length=8):
+        characters = string.ascii_uppercase + string.digits
+        while True:
+            code = ''.join(random.choices(characters, k=length))
+            if not Coupon.objects.filter(code=code).exists():
+                return code
+
+    def __str__(self):
+        return f'{self.code} - {self.discount_percent}% - Evento: {self.event.title}'
+    
+    def clean(self):
+        if self.expiration_date < timezone.now():
+            raise ValidationError("La fecha de expiración no puede ser en el pasado.")
+    
 #comentarios
 class Comment(models.Model):
     title = models.CharField(max_length=200)
@@ -251,6 +288,7 @@ class Ticket(models.Model):
     ticket_code = models.CharField(max_length=100, unique=True, editable=False)
     quantity = models.PositiveIntegerField(default=1)
     type = models.CharField(max_length=10, choices=TICKET_TYPES, default='general')
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 
     def save(self, *args, **kwargs):
         if not self.ticket_code:
@@ -274,7 +312,8 @@ class TicketForm(forms.ModelForm):
     card_holder = forms.CharField(max_length=100, required=True, label='Nombre del Titular *')
     expiration_date = forms.CharField(max_length=5, required=True, label='Expiración (MM/YY *)')
     cvc = forms.CharField(max_length=3, required=True, label='CVC *')
-    
+        
+        
 class Notification(models.Model):
     title = models.CharField(max_length=50)
     message = models.CharField(max_length=100)
@@ -310,7 +349,7 @@ class Notification(models.Model):
         users_to_notify = User.objects.filter(tickets__event=event).distinct()
         if len(users_to_notify) > 0:
             title = "Evento Modificado"
-            message = "El evento ha sido modificado. Revisa el detalle del evento para mantenerte actualizado " + "<a href=/events/" + str(event.id) + ">aqui</a>"
+            message = "El evento ha sido modificado. Revisa el detalle del evento para mantenerte actualizado."
             return Notification.new([current_user, *users_to_notify], event, title, message, "LOW")
         return None
 
