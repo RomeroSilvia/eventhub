@@ -40,10 +40,6 @@ jobs:
       run: |
         python manage.py check
 
-    - name: Collect static files
-      run: python manage.py collectstatic --noinput
-      env:
-        STATIC_ROOT: /tmp/staticfiles
 
   unit-integration-tests:
     name: Unit & Integration Tests
