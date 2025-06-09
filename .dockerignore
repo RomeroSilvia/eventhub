@@ -20,3 +20,4 @@ app/pycache/
 .editorconfig
 .gitignore
 requirements-dev.txt
+Dockerfile
