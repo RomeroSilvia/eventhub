@@ -1,47 +1,122 @@
 name: ci
 
 on:
-    pull_request:
-        branches: [main]
+    push:
+        branches: [feature/ci]
+        paths-ignore:
+        - '**.md'
+        - '.gitignore'
+
+env:
+  PYTHON_VERSION: '3.12'
 
 jobs:
   build:
-
+    name: Build enviroment to run Django
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.13]
 
     steps:
-    - name: Check out code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag eventhub:$(date +%s)
+    - name: Django Check
+      run: |
+        python manage.py check
 
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Collect Static Files
+      run: |
+        python manage.py collectstatic --noinput
+      env:
+        DJANGO_SETTINGS_MODULE: eventhub.settings
+
+  unit-integration-tests:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v3
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version:  ${{ env.PYTHON_VERSION }}
 
     - name: Install Dependencies
       run: |
+        python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
 
-    - name: Run Tests
+    - name: Run Tests Integration & Unit
       run: |
-        python manage.py test app.test.test_integration
-        python manage.py test app.test.test_unit
+        python manage.py test app.test.test_integration --verbosity=2
+        python manage.py test app.test.test_unit --verbosity=2
+
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [unit-integration-tests]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Install playwright
       run: python -m playwright install --with-deps chromium
 
-    - name: Run Tests
+    - name: Run Tests E2E
       run: |
         python manage.py test app.test.test_e2e
+
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
+    
+    - name: Upload screenshots on failure
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: test-screenshots
+        path: test-results/
+    
+  notify:
+      name: Notify Results
+      runs-on: ubuntu-latest
+      needs: [build, unit-integration-tests, e2e-tests]
+      if: always()
+      
+      steps:
+        - name: Notify success
+          if: needs.build.result == 'success' && needs.unit-integration-tests.result == 'success' && needs.e2e-tests.result == 'success'
+          run: echo "✅ Todos los test pasaron con Exito!"
+
+        - name: Notify failure
+          if: needs.build.result == 'failure' || needs.unit-integration-tests.result == 'failure' || needs.e2e-tests.result == 'failure'
+          run: |
+            echo "❌ El pipeline fallo!"
+            echo "Build: ${{ needs.build.result }}"
+            echo "Unit/Integration Tests: ${{ needs.unit-integration-tests.result }}"
+            echo "E2E Tests: ${{ needs.e2e-tests.result }}"
+            exit 1
