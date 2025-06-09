@@ -40,11 +40,10 @@ jobs:
       run: |
         python manage.py check
 
-    - name: Collect Static Files
-      run: |
-        python manage.py collectstatic --noinput
+    - name: Collect static files
+      run: python manage.py collectstatic --noinput
       env:
-        DJANGO_SETTINGS_MODULE: eventhub.settings
+        STATIC_ROOT: /tmp/staticfiles
 
   unit-integration-tests:
     name: Unit & Integration Tests
