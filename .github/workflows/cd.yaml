@@ -1,0 +1,62 @@
+name: cd
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Get the date
+        run: echo "date=$(date '+%Y%m%d%H%M%S')" >> $GITHUB_ENV
+
+      - name: Build image (local test)
+        run: docker build -t test-image:latest .
+
+      - name: Run container and validate /ping
+        run: |
+          docker run -d --name test-api -p 8080:8080 test-image:latest
+          echo "Esperando a que la API responda..."
+          for i in {1..10}; do
+            RESPONSE=$(curl --silent --fail http://localhost:8080/ping || true)
+            if [ "$RESPONSE" = "pong" ]; then
+              echo "✅ API respondió con 'pong'"
+              docker stop test-api
+              docker rm test-api
+              exit 0
+            else
+              echo "⏳ Intento $i: respuesta '$RESPONSE'. Reintentando..."
+              sleep 5
+            fi
+          done
+          echo "❌ La API no respondió correctamente, cancelando deploy"
+          docker logs test-api || true
+          docker stop test-api
+          docker rm test-api
+          exit 1
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/event_hub:latest,${{ secrets.DOCKERHUB_USERNAME }}/event_hub:${{ env.date }}
+
+      - name: Deploy
+        run: curl ${{ secrets.RENDER_HOOK }}
