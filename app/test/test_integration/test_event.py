@@ -1,11 +1,12 @@
 import datetime
+from datetime import timedelta
 import time
 
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from app.models import Event, User, Venue
+from app.models import Event, User, Venue, Category
 
 
 class BaseEventTestCase(TestCase):
@@ -59,6 +60,9 @@ class BaseEventTestCase(TestCase):
 
         # Cliente para hacer peticiones
         self.client = Client()
+
+        #Categoria para crear evento
+        self.category = Category.objects.create(name="Conferencia")
 
 
 class EventsListViewTest(BaseEventTestCase):
@@ -205,14 +209,18 @@ class EventFormSubmissionTest(BaseEventTestCase):
         # Login con usuario organizador
         self.client.login(username="organizador", password="password123")
 
+        future_date = (timezone.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+        future_date_obj = timezone.now() + timedelta(days=1)
+
         # Crear datos para el evento
         event_data = {
             "title": "Nuevo Evento",
             "description": "Descripción del nuevo evento",
-            "date": "2025-05-01",
+            "date": future_date,
             "time": "14:30",
             "venue": 1,
             "price": 150.00,
+            "categories": [self.category.pk],
         }
         # Hacer petición POST a la vista event_form
         response = self.client.post(reverse("event_form"), event_data)
@@ -230,9 +238,9 @@ class EventFormSubmissionTest(BaseEventTestCase):
         self.assertEqual(response.url, reverse("event_detail", args=[evento.id])) 
 
         self.assertEqual(evento.description, "Descripción del nuevo evento")
-        self.assertEqual(evento.scheduled_at.year, 2025)
-        self.assertEqual(evento.scheduled_at.month, 5)
-        self.assertEqual(evento.scheduled_at.day, 1)
+        self.assertEqual(evento.scheduled_at.year, future_date_obj.year)
+        self.assertEqual(evento.scheduled_at.month, future_date_obj.month)
+        self.assertEqual(evento.scheduled_at.day, future_date_obj.day)
         self.assertEqual(evento.scheduled_at.hour, 14)
         self.assertEqual(evento.scheduled_at.minute, 30)
         self.assertEqual(evento.organizer, self.organizer)
