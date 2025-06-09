@@ -390,7 +390,7 @@ def event_form(request, id=None):
                 event = {
                     'title': title,
                     'description': description,
-                    'scheduled_at': scheduled_at,
+                    'scheduled_at': new_scheduled_at,
                 }
                 event_categories_ids = list(map(int, category_ids))
                 event_venue = Venue.objects.filter(pk=venue_id).first()

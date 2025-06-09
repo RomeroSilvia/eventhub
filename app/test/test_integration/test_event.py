@@ -211,7 +211,7 @@ class EventFormSubmissionTest(BaseEventTestCase):
             "description": "Descripción del nuevo evento",
             "date": "2025-05-01",
             "time": "14:30",
-            "venue":1,
+            "venue": 1,
             "price": 150.00,
         }
         # Hacer petición POST a la vista event_form
@@ -248,6 +248,8 @@ class EventFormSubmissionTest(BaseEventTestCase):
             "description": "Nueva descripción actualizada",
             "date": "2025-06-15",
             "time": "16:45",
+            "venue": 1,
+            "price": 110.00,
         }
 
         # Hacer petición POST para editar el evento
