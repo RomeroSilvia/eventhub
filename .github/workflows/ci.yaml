@@ -2,7 +2,7 @@ name: ci
 
 on:
     push:
-        branches: [feature/ci]
+        branches: [main]
         paths-ignore:
         - '**.md'
         - '.gitignore'
