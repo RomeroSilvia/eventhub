@@ -2,11 +2,15 @@ name: ci
 
 on:
     pull_request:
-        branches: [main, features/ci]
+        branches: [main]
         paths-ignore:
         - '**.md'
         - '.gitignore'
-
+    push:
+        branches: [features/ci]
+        paths-ignore:
+        - '**.md'
+        - '.gitignore'
 env:
   PYTHON_VERSION: '3.12'
 
