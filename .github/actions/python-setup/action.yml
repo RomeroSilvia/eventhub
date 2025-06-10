@@ -1,0 +1,29 @@
+name: 'Setup Python & Django Dependencies'
+description: 'Setup Python and install Django dependencies'
+
+inputs:
+  requirements-file:
+    description: 'Requirements file to install'
+    required: true
+    default: 'requirements.txt'
+  python-version:
+    description: 'Python version'
+    required: false
+    default: '3.12'
+
+runs:
+  using: 'composite'
+  steps:
+
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: 'pip'
+        cache-dependency-path: ${{ inputs.requirements-file }}
+
+    - name: Install Dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r ${{ inputs.requirements-file }}
