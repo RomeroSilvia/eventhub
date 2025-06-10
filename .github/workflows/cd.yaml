@@ -30,10 +30,10 @@ jobs:
 
       - name: Run container and validate /ping
         run: |
-          docker run -d --name test-api -p 8080:8080 test-image:latest
+          docker run -d --name test-api -p 8000:8000 test-image:latest
           echo "Esperando a que la API responda..."
           for i in {1..10}; do
-            RESPONSE=$(curl --silent --fail http://localhost:8080/ping || true)
+            RESPONSE=$(curl --silent --fail http://localhost:8000/ping || true)
             if [ "$RESPONSE" = "pong" ]; then
               echo "✅ API respondió con 'pong'"
               docker stop test-api
