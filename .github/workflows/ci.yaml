@@ -1,8 +1,8 @@
 name: ci
 
 on:
-    push:
-        branches: [main]
+    pull_request:
+        branches: [main, features/ci]
         paths-ignore:
         - '**.md'
         - '.gitignore'
