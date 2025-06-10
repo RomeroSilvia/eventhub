@@ -23,7 +23,8 @@ import random, string
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.http import Http404
+from django.http import Http404, HttpResponse
+
 
 def generate_coupon_code(length=8):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
@@ -1279,3 +1280,6 @@ def approved_or_deny(request, id):
         refound.approval_date = datetime.now()
         refound.save()
     return redirect('refound')
+
+def ping_view(request):
+    return HttpResponse("pong", content_type="text/plain")
