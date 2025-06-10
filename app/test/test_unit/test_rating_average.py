@@ -8,7 +8,8 @@ User = get_user_model()
 class RatingAverageCalculation(TestCase):
 
     def setUp(self):
-        self.organizer = User.objects.create_user(username="organizer", password="pass")
+        self.mocked_organizer = User.objects.create_user(username="organizer", password="pass")
+        self.mocked_user = User.objects.create_user(username="user2", password="pass")
         self.venue_mocked = Venue.objects.create(
             name="Auditorio Nacional",
             address="60 y 124",
@@ -16,28 +17,29 @@ class RatingAverageCalculation(TestCase):
             country="ARG",  
             city="La Plata"
         )
-        self.event = Event.objects.create(
+        self.mocked_event = Event.objects.create(
             title="Evento Test", 
-            organizer=self.organizer, 
-            scheduled_at=timezone.now(), 
+            description="Test description",
+            scheduled_at="2025-12-01T10:00:00Z",
+            organizer=self.mocked_organizer, 
             venue=self.venue_mocked
         )
 
     def test_rating_average_calculation(self):
         Rating.objects.create(
-            evento=self.event, usuario=self.organizer,
+            evento=self.mocked_event, usuario=self.mocked_organizer,
             titulo="Muy Bueno", calificacion=5, texto="El evento estuvo muy interesante"
         )
 
         Rating.objects.create(
-            evento=self.event, usuario=User.objects.create_user(username="user2", password="pass"),
+            evento=self.mocked_event, usuario=self.mocked_user,
             titulo="No me intereso", calificacion=3, texto="El evento estuvo bien, pero puede mejorar"
         )
 
         Rating.objects.create(
-            evento=self.event, usuario=User.objects.create_user(username="user3", password="pass"),
+            evento=self.mocked_event, usuario=User.objects.create_user(username="user3", password="pass"),
             titulo="Malo", calificacion=1, texto="No me gusto nada"
         )
 
-        average = self.event.rating_average
-        self.assertEqual(round(average, 1), 3.0)
+        self.assertEqual(self.mocked_event.rating_average, 3.0)
+    

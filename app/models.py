@@ -1,5 +1,5 @@
 
-import datetime
+from datetime import datetime
 from django import forms
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -110,7 +110,7 @@ class Event(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name='events')
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), null=False, blank=False)
 
     @property
     def tickets_sold(self):
@@ -143,6 +143,11 @@ class Event(models.Model):
 
         if description == "":
             errors["description"] = "Por favor ingrese una descripcion"
+        
+        if not isinstance(scheduled_at, datetime):
+            errors["scheduled_at"] = "La fecha programada no es válida."
+        elif scheduled_at <= timezone.now():
+            errors["scheduled_at"] = "No se permiten fecha o hora anteriores a la actual."
 
         return errors
 
