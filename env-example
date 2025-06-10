@@ -7,3 +7,4 @@ DJANGO_SETTINGS_MODULE=eventhub.settings
 # Database settings
 DB_ENGINE=django.db.backends.sqlite3
 DB_NAME=db.sqlite3
+CSRF_TRUSTED_ORIGINS=http://localhost,http://127.0.0.1,http://0.0.0.0
