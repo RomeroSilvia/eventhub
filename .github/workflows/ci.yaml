@@ -31,7 +31,7 @@ jobs:
   unit-integration-tests:
     name: Unit & Integration Tests
     runs-on: ubuntu-latest
-    need: [build]
+    needs: [build]
     
     steps:
     - uses: actions/checkout@v4
@@ -49,7 +49,7 @@ jobs:
   e2e-tests:
     name: End-to-End Tests
     runs-on: ubuntu-latest
-    need: [build]
+    needs: [build]
 
     steps:
     - uses: actions/checkout@v4
