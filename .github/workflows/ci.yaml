@@ -19,7 +19,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Setup Python & Dependencies  
-      uses: ..//actions/python-setup
+      uses: ./.github/actions/python-setup
       with:
         requirements-file: 'requirements.txt'
         python-version: ${{ env.PYTHON_VERSION }}
