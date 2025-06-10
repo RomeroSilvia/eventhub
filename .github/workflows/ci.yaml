@@ -1,0 +1,73 @@
+name: ci
+
+on:
+    pull_request:
+        branches: [main]
+        paths-ignore:
+        - '**.md'
+        - '.gitignore'
+    push:
+        branches: [features/ci]
+        paths-ignore:
+        - '**.md'
+        - '.gitignore'
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+
+  build:
+    name: Build enviroment to run Django
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Python & Dependencies  
+      uses: ./.github/actions/python-setup/
+      with:
+        requirements-file: 'requirements.txt'
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Django Check
+      run: python manage.py check
+
+
+  unit-integration-tests:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    needs: [build]
+    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Python & Dependencies  
+      uses: ./.github/actions/python-setup/
+      with:
+        requirements-file: 'requirements-dev.txt'
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Run Tests Integration & Unit
+      run: |
+        python manage.py test app.test.test_integration --verbosity=2
+        python manage.py test app.test.test_unit --verbosity=2
+
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [build]
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Python & Dependencies  
+      uses: ./.github/actions/python-setup/
+      with:
+        requirements-file: 'requirements-dev.txt'
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install playwright
+      run: python -m playwright install --with-deps chromium
+
+    - name: Run Tests E2E
+      run: |
+        python manage.py test app.test.test_e2e
+
+    
