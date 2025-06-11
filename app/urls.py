@@ -2,7 +2,7 @@ from django.contrib.auth.views import LogoutView
 from django.urls import path
 from . import views
 from django.urls import include
-from .views import verVenues, crearVenues, edit_ticket, eliminarVenue, validar_cupon
+from .views import verVenues, crearVenues, edit_ticket, eliminarVenue, validar_cupon, ping_view
 
 
 urlpatterns = [
@@ -55,5 +55,5 @@ urlpatterns = [
     path("validar-cupon/", validar_cupon, name="validar_cupon"),
     path('events/<int:event_id>/coupons/<int:coupon_id>/edit/', views.coupon_edit, name='coupon_edit'),
     path('events/<int:event_id>/coupons/<int:coupon_id>/delete/', views.coupon_delete, name='coupon_delete'),
-
+    path('ping', ping_view),
 ]
