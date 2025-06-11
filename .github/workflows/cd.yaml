@@ -65,14 +65,15 @@ jobs:
       - name: Deploy to Render
         run: |
           echo "Deployando en Render..."
-          RESPONSE=$(curl --fail --silent --show-error --write-out "%{http_code}" --output /dev/null ${{ secrets.RENDER_HOOK }}) || {
-            echo "❌ Error al hacer deploy. Código HTTP: $RESPONSE"
+          RESPONSE=$(curl --silent --show-error --write-out "%{http_code}" --output /dev/null ${{ secrets.RENDER_HOOK }})
+          CURL_EXIT_CODE=$?
+          if [ "$CURL_EXIT_CODE" -ne 0 ]; then
+            echo "❌ Error al hacer deploy. Código de salida de curl: $CURL_EXIT_CODE"
             exit 1
-          }
+          fi
           if [ "$RESPONSE" -eq 200 ]; then
             echo "✅ Deploy finalizado exitosamente. Código HTTP: $RESPONSE"
           else
             echo "❌ Error inesperado. Código HTTP: $RESPONSE"
             exit 1
-          }
-
+          fi
