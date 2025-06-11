@@ -7,10 +7,13 @@ on:
         - '**.md'
         - '.gitignore'
     push:
-        branches: [features/ci]
+        branches: [features/ci, main]
         paths-ignore:
         - '**.md'
         - '.gitignore'
+    release:
+        types:
+        - created
 env:
   PYTHON_VERSION: '3.12'
 
