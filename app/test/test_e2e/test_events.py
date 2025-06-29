@@ -1,5 +1,6 @@
 import datetime
 import re
+from django.utils.formats import date_format
 
 from django.utils import timezone
 from playwright.sync_api import expect
@@ -9,6 +10,14 @@ from app.test.test_e2e.base import BaseE2ETest
 def assert_input_value_equals(locator, expected_value: str):
     actual_value = locator.input_value().replace(",", ".")
     assert actual_value == expected_value, f"Expected '{expected_value}', got '{actual_value}'"
+
+
+def format_event_datetime(dt):
+    return date_format(
+        timezone.localtime(dt),
+        "l, j \\d\\e F \\d\\e Y, H:i",  # Formato: jueves, 1 de mayo de 2025, 19:00
+        use_l10n=True
+    )
 
 
 class EventBaseTest(BaseE2ETest):
@@ -51,7 +60,7 @@ class EventBaseTest(BaseE2ETest):
 
         self.category2 = Category.objects.create(name="Exposición")
 
-        event_date1 = timezone.make_aware(datetime.datetime(2025, 2, 10, 10, 10))
+        event_date1 = (timezone.now() + datetime.timedelta(days=5)).replace(second=0, microsecond=0)
         self.event1 = Event.objects.create(
             title="Evento de prueba 1",
             description="Descripción del evento 1",
@@ -62,11 +71,11 @@ class EventBaseTest(BaseE2ETest):
         )
         self.event1.categories.add(self.category) 
 
-        event_date2 = timezone.make_aware(datetime.datetime(2025, 5, 15, 14, 30))
+        self.event_date2 = (timezone.now() + datetime.timedelta(days=10)).replace(second=0, microsecond=0)
         self.event2 = Event.objects.create(
             title="Evento de prueba 2",
             description="Descripción del evento 2",
-            scheduled_at=event_date2,
+            scheduled_at=self.event_date2,
             organizer=self.organizer,
             venue=self.venue,
             price=100.00
@@ -92,14 +101,17 @@ class EventBaseTest(BaseE2ETest):
         row0 = rows.nth(0)
         expect(row0.locator("td").nth(0)).to_have_text("Evento de prueba 1")
         expect(row0.locator("td").nth(1)).to_have_text("Descripción del evento 1")
-        expect(row0.locator("td").nth(2)).to_have_text("10 Feb 2025, 10:10")
+        formatted_date = format_event_datetime(self.event1.scheduled_at)
+        expect(row0.locator("td").nth(2)).to_have_text(formatted_date)
         expect(row0.locator("td").nth(4)).to_have_text("$50,00")
 
         # Verificar datos del segundo evento
-        expect(rows.nth(1).locator("td").nth(0)).to_have_text("Evento de prueba 2")
-        expect(rows.nth(1).locator("td").nth(1)).to_have_text("Descripción del evento 2")
-        expect(rows.nth(1).locator("td").nth(2)).to_have_text("15 May 2025, 14:30")
-        expect(rows.nth(1).locator("td").nth(4)).to_have_text("$100,00")
+        row1 = rows.nth(1)
+        expect(row1.locator("td").nth(0)).to_have_text("Evento de prueba 2")
+        expect(row1.locator("td").nth(1)).to_have_text("Descripción del evento 2")
+        formatted_date2 = format_event_datetime(self.event2.scheduled_at)
+        expect(row1.locator("td").nth(2)).to_have_text(formatted_date2)
+        expect(row1.locator("td").nth(4)).to_have_text("$100,00")
 
     def _table_has_correct_actions(self, user_type):
         """Método auxiliar para verificar que las acciones son correctas según el tipo de usuario"""
@@ -233,7 +245,8 @@ class EventCRUDTest(EventBaseTest):
         self.page.get_by_label("Título del Evento").fill("Evento de prueba E2E")
         self.page.get_by_label("Precio").fill("20.00")
         self.page.get_by_label("Descripción").fill("Descripción creada desde prueba E2E")
-        self.page.get_by_label("Fecha").fill("2025-06-15")
+        self.event_date = (timezone.now() + datetime.timedelta(days=12)).date()
+        self.page.get_by_label("Fecha").fill(self.event_date.isoformat())
         self.page.get_by_label("Hora").fill("16:45")
         self.page.get_by_label(self.category.name).check()
         self.page.get_by_label("Lugar").select_option(str(self.venue.pk))
@@ -251,7 +264,9 @@ class EventCRUDTest(EventBaseTest):
         row = self.page.locator("table tbody tr").last
         expect(row.locator("td").nth(0)).to_have_text("Evento de prueba E2E")
         expect(row.locator("td").nth(1)).to_have_text("Descripción creada desde prueba E2E")
-        expect(row.locator("td").nth(2)).to_have_text("15 Jun 2025, 16:45")
+        created_event = Event.objects.get(title="Evento de prueba E2E")
+        expected_datetime = format_event_datetime(created_event.scheduled_at)
+        expect(row.locator("td").nth(2)).to_have_text(expected_datetime)
         expect(row.locator("td").nth(3)).to_have_text(self.category.name)
         expect(row.locator("td").nth(4)).to_have_text("$20,00")
 
@@ -267,25 +282,26 @@ class EventCRUDTest(EventBaseTest):
         expect(header).to_have_text("Editar evento")
         expect(header).to_be_visible()
 
-        # Verificar que el formulario está precargado con los datos del evento y luego los editamos
         title = self.page.get_by_label("Título del Evento")
         expect(title).to_have_value("Evento de prueba 1")
         title.fill("Titulo editado")
+
         price = self.page.get_by_label("Precio")
         assert_input_value_equals(price, "50.00")
         price.fill("30.00")
-        
+
         description = self.page.get_by_label("Descripción")
         assert description.input_value().strip() == "Descripción del evento 1"
-        #expect(description).to_have_value("Descripción del evento 1")
         description.fill("Descripcion Editada")
-        
+
+        # Fecha (nueva: 15 días desde hoy)
         date = self.page.get_by_label("Fecha")
-        expect(date).to_have_value("2025-02-10")
-        date.fill("2025-04-20")
+        new_date = (timezone.now() + datetime.timedelta(days=15)).date()
+        date.fill(new_date.isoformat())
 
         time = self.page.get_by_label("Hora")
-        expect(time).to_have_value("10:10")
+        expect_time = self.event1.scheduled_at.strftime("%H:%M")
+        expect(time).to_have_value(expect_time)
         time.fill("03:00")
 
         category = self.page.get_by_label(self.category.name)
@@ -294,17 +310,22 @@ class EventCRUDTest(EventBaseTest):
 
         venue = self.page.get_by_label("Lugar")
         expect(venue).to_have_value(str(self.venue.pk))
-        self.page.get_by_label("Lugar").select_option(str(self.venue2.pk))
+        venue.select_option(str(self.venue2.pk))
 
         self.page.get_by_role("button", name="Guardar Cambios").click()
         expect(self.page).to_have_url(f"{self.live_server_url}/events/{self.event1.pk}/")
 
         expect(self.page.get_by_text("Titulo editado")).to_be_visible()
         expect(self.page.get_by_text("Descripcion Editada")).to_be_visible()
-        expect(self.page.get_by_text("domingo, 20 de abril de 2025, 03:00")).to_be_visible()
+        
+        updated_event = Event.objects.get(pk=self.event1.pk)
+        expected_datetime = format_event_datetime(updated_event.scheduled_at)
+        expect(self.page.get_by_text(expected_datetime)).to_be_visible()
+        
         expect(self.page.get_by_text(self.category2.name)).to_be_visible()
         expect(self.page.get_by_text("$30,00")).to_be_visible()
         #expect(self.page.get_by_text(self.venue2.name)).to_be_visible()
+
 
     def test_delete_event_organizer(self):
         """Test que verifica la funcionalidad de eliminar un evento para organizadores"""

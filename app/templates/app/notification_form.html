@@ -58,7 +58,7 @@
                                 <select class="form-select  {% if errors.event %}is-invalid{% endif %}" id="event" name="event" required>
                                     <option value="">Seleccionar un evento</option>
                                     {% for event in events%}
-                                    <option value="{{ event.id }}">{{ event.title }} - {{ event.description }} - {{ event.scheduled_at|date:"d b Y, H:i" }}</option>
+                                    <option value="{{ event.id }}">{{ event.title }} - {{ event.description }} - {{ event.scheduled_at|date:"l, j \\d\\e F \\d\\e Y, H:i" }}</option>
                                     {% empty %}
                                         <option value="">No se encontraron eventos relacionados</option>
                                     {% endfor %}
