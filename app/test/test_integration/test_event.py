@@ -1,6 +1,6 @@
 import datetime
 from datetime import timedelta
-import time
+from django.utils.formats import date_format
 
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -8,6 +8,12 @@ from django.utils import timezone
 
 from app.models import Event, User, Venue, Category
 
+def format_event_datetime(dt):
+    return date_format(
+        timezone.localtime(dt),
+        "l, j \\d\\e F \\d\\e Y, H:i",  # Formato: jueves, 1 de mayo de 2025, 19:00
+        use_l10n=True
+    )
 
 class BaseEventTestCase(TestCase):
     """Clase base con la configuración común para todos los tests de eventos"""
@@ -40,19 +46,21 @@ class BaseEventTestCase(TestCase):
         )
 
         # Crear algunos eventos de prueba
+        self.event_date1 = (timezone.now() + datetime.timedelta(days=1)).replace(second=0, microsecond=0)
         self.event1 = Event.objects.create(
             title="Evento 1",
             description="Descripción del evento 1",
-            scheduled_at=timezone.now() + datetime.timedelta(days=1),
+            scheduled_at=self.event_date1,
             organizer=self.organizer,
             venue=self.venue,
             price=100.00
         )
 
+        self.event_date2 = (timezone.now() + datetime.timedelta(days=2)).replace(second=0, microsecond=0)
         self.event2 = Event.objects.create(
             title="Evento 2",
             description="Descripción del evento 2",
-            scheduled_at=timezone.now() + datetime.timedelta(days=2),
+            scheduled_at=self.event_date2,
             organizer=self.organizer,
             venue=self.venue,
             price=100.00
@@ -209,9 +217,9 @@ class EventFormSubmissionTest(BaseEventTestCase):
         # Login con usuario organizador
         self.client.login(username="organizador", password="password123")
 
-        future_date = (timezone.now() + timedelta(days=1)).strftime("%Y-%m-%d")
-        future_date_obj = timezone.now() + timedelta(days=1)
-
+        future_date_obj = timezone.now() + datetime.timedelta(days=1)
+        future_date = future_date_obj.strftime("%Y-%m-%d")
+        
         # Crear datos para el evento
         event_data = {
             "title": "Nuevo Evento",
@@ -249,12 +257,15 @@ class EventFormSubmissionTest(BaseEventTestCase):
         """Test que verifica que se puede editar un evento existente mediante POST"""
         # Login con usuario organizador
         self.client.login(username="organizador", password="password123")
+        
+        future_date = timezone.now() + datetime.timedelta(days=12)
+        future_date_str = future_date.strftime("%Y-%m-%d")
 
         # Datos para actualizar el evento
         updated_data = {
             "title": "Evento 1 Actualizado",
             "description": "Nueva descripción actualizada",
-            "date": "2025-06-15",
+            "date": future_date_str,
             "time": "16:45",
             "venue": 1,
             "price": 110.00,
@@ -272,9 +283,10 @@ class EventFormSubmissionTest(BaseEventTestCase):
 
         self.assertEqual(self.event1.title, "Evento 1 Actualizado")
         self.assertEqual(self.event1.description, "Nueva descripción actualizada")
-        self.assertEqual(self.event1.scheduled_at.year, 2025)
-        self.assertEqual(self.event1.scheduled_at.month, 6)
-        self.assertEqual(self.event1.scheduled_at.day, 15)
+
+        self.assertEqual(self.event1.scheduled_at.year, future_date.year)
+        self.assertEqual(self.event1.scheduled_at.month, future_date.month)
+        self.assertEqual(self.event1.scheduled_at.day, future_date.day)
         self.assertEqual(self.event1.scheduled_at.hour, 16)
         self.assertEqual(self.event1.scheduled_at.minute, 45)
 

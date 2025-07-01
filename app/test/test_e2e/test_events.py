@@ -11,14 +11,12 @@ def assert_input_value_equals(locator, expected_value: str):
     actual_value = locator.input_value().replace(",", ".")
     assert actual_value == expected_value, f"Expected '{expected_value}', got '{actual_value}'"
 
-
 def format_event_datetime(dt):
     return date_format(
         timezone.localtime(dt),
         "l, j \\d\\e F \\d\\e Y, H:i",  # Formato: jueves, 1 de mayo de 2025, 19:00
         use_l10n=True
     )
-
 
 class EventBaseTest(BaseE2ETest):
     """Clase base específica para tests de eventos"""
