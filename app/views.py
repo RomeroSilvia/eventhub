@@ -334,6 +334,9 @@ def event_form(request, id=None):
     errors = {}
 
     venues = Venue.objects.all()
+    event = None
+    event_categories_ids = []
+    event_venue = None
 
     if request.method == "POST":
         title = request.POST.get("title")
@@ -355,10 +358,13 @@ def event_form(request, id=None):
         new_scheduled_at = timezone.make_aware(
             timezone.datetime(int(year), int(month), int(day), int(hour), int(minutes))
         )
+
+        #Validacion de fecha
+        if new_scheduled_at <= timezone.now():
+            errors["scheduled_at"] = "La fecha y hora deben ser posteriores al momento actual."
         
         new_coupon_percentage = request.POST.get("new_coupon_percentage")
         existing_coupon_id = request.POST.get("existing_coupon")
-
         coupon_to_assign = None
 
         if new_coupon_percentage:
@@ -372,16 +378,45 @@ def event_form(request, id=None):
                     )
             except (InvalidOperation, ValueError):
                 pass  
-
         elif existing_coupon_id:
             try:
                 coupon_to_assign = Coupon.objects.get(id=existing_coupon_id, organizer=user)
             except Coupon.DoesNotExist:
                 pass
 
+        if errors:
+            if id:
+                event = get_object_or_404(Event, pk=id)
+                event_categories_ids = list(event.categories.values_list('id', flat=True))
+                event_venue = event.venue
+            else:
+                event = {
+                    'title': title,
+                    'description': description,
+                    'scheduled_at': new_scheduled_at,
+                }
+                event_categories_ids = list(map(int, category_ids))
+                event_venue = Venue.objects.filter(pk=venue_id).first()
+            
+            categories = list(Category.objects.all())
+            total = len(categories)
+            per_column = math.ceil(total / 3) if total else 0
+            categories_chunks = [categories[i:i + per_column] for i in range(0, total, per_column)]
+
+            context = {
+                'event': event,
+                'categories': categories,
+                'categories_chunks': categories_chunks,
+                'event_categories_ids': event_categories_ids,
+                'user_is_organizer': user.is_organizer,
+                'venues': venues,
+                'event_venue': event_venue,
+                'price': getattr(event, 'price', 0.0) if event else 0.0,
+                'errors': errors,
+            }
+            return render(request, 'app/event_form.html', context)
       
         if id is None:
-         
             venue = get_object_or_404(Venue, pk=venue_id) if venue_id else Venue.objects.first()
             if venue is None:
                 raise ValueError("No se ha proporcionado un lugar de celebración y no se dispone de un lugar de celebración por defecto.")
@@ -422,6 +457,7 @@ def event_form(request, id=None):
     event = None
     event_categories_ids = []
     event_venue = None
+
     if id:
         event = get_object_or_404(Event, pk=id)
         event_categories_ids = list(event.categories.values_list('id', flat=True))
@@ -430,7 +466,6 @@ def event_form(request, id=None):
         event = {}
 
     categories = list(Category.objects.all())
-
     total = len(categories)
     per_column = math.ceil(total / 3)
     total = len(categories)
@@ -448,6 +483,7 @@ def event_form(request, id=None):
     'venues': venues, 
     'event_venue': event_venue,
     'price': getattr(event, 'price', 0.0) if event else 0.0,
+    'errors': errors,
 
     }
 
