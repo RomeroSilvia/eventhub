@@ -34,11 +34,11 @@ class CouponBaseTest(BaseE2ETest):
             city="La Plata"
         )
 
-        self.event_date1 = (timezone.now() + datetime.timedelta(days=5)).replace(second=0, microsecond=0)
+        self.event_date = (timezone.now() + datetime.timedelta(days=5)).replace(second=0, microsecond=0)
         self.event_mocked = Event.objects.create(
             title="Evento de prueba 1",
             description="Descripción del evento 1",
-            scheduled_at=self.event_date1,
+            scheduled_at=self.event_date,
             organizer=self.mocked_organizer_user,
             venue=self.mocked_venue,
             price=50.00
@@ -47,11 +47,9 @@ class CouponBaseTest(BaseE2ETest):
         self.mocked_coupon = Coupon.objects.create(
             event=self.event_mocked,
             discount_percent=10,
-            expiration_date=self.event_date1,
+            expiration_date=self.event_date,
             organizer=self.mocked_organizer_user
         )
-
-
 
 class CouponDisplayTest(CouponBaseTest):
     """Tests de visualización de cupones para el organizador"""

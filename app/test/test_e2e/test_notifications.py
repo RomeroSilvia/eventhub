@@ -18,11 +18,11 @@ class NotificationBaseTest(BaseE2ETest):
             city="Buenos Aires"
         )
 
-        self.event_date1 = (timezone.now() + datetime.timedelta(days=7)).replace(second=0, microsecond=0)
+        self.event_date = (timezone.now() + datetime.timedelta(days=7)).replace(second=0, microsecond=0)
         self.event_mocked = Event.objects.create(
             title="Mocked Event",
             description="Test description",
-            scheduled_at="2025-12-01T10:00:00Z",
+            scheduled_at=self.event_date,
             organizer=self.mocked_organizer_user,
             venue=self.mocked_venue,
             price=100.00

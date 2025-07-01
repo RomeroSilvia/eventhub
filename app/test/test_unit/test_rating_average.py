@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+import datetime
 from django.utils import timezone
 from django.test import TestCase
 from app.models import Event, Rating, Venue
@@ -20,7 +21,7 @@ class RatingAverageCalculation(TestCase):
         self.mocked_event = Event.objects.create(
             title="Evento Test", 
             description="Test description",
-            scheduled_at="2025-12-01T10:00:00Z",
+            scheduled_at=timezone.now() + datetime.timedelta(days=7),
             organizer=self.mocked_organizer, 
             venue=self.venue_mocked
         )

@@ -217,14 +217,14 @@ class EventFormSubmissionTest(BaseEventTestCase):
         # Login con usuario organizador
         self.client.login(username="organizador", password="password123")
 
-        future_date_obj = timezone.now() + datetime.timedelta(days=1)
-        future_date = future_date_obj.strftime("%Y-%m-%d")
+        date_obj = timezone.now() + datetime.timedelta(days=2)
+        new_date = date_obj.strftime("%Y-%m-%d")
         
         # Crear datos para el evento
         event_data = {
             "title": "Nuevo Evento",
             "description": "Descripción del nuevo evento",
-            "date": future_date,
+            "date": new_date,
             "time": "14:30",
             "venue": 1,
             "price": 150.00,
@@ -246,9 +246,9 @@ class EventFormSubmissionTest(BaseEventTestCase):
         self.assertEqual(response.url, reverse("event_detail", args=[evento.id])) 
 
         self.assertEqual(evento.description, "Descripción del nuevo evento")
-        self.assertEqual(evento.scheduled_at.year, future_date_obj.year)
-        self.assertEqual(evento.scheduled_at.month, future_date_obj.month)
-        self.assertEqual(evento.scheduled_at.day, future_date_obj.day)
+        self.assertEqual(evento.scheduled_at.year, date_obj.year)
+        self.assertEqual(evento.scheduled_at.month, date_obj.month)
+        self.assertEqual(evento.scheduled_at.day, date_obj.day)
         self.assertEqual(evento.scheduled_at.hour, 14)
         self.assertEqual(evento.scheduled_at.minute, 30)
         self.assertEqual(evento.organizer, self.organizer)
