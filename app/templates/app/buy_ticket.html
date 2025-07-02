@@ -8,7 +8,7 @@
     <div class="card mb-4">
         <div class="card-body">
             <h6 class="mb-0">Fecha y Hora</h6>
-            <p class="mb-0">{{ event.scheduled_at|date:"l, j \d\e F \d\e Y, H:i" }}</p>
+            <p class="mb-0">{{ event.scheduled_at|date:"l, j \\d\\e F \\d\\e Y, H:i" }}</p>
             <p><strong>Lugar:</strong> {{ event.venue.name }}</p>
         </div>
     </div>

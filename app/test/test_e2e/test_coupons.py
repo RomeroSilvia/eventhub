@@ -1,5 +1,6 @@
 import datetime
 from django.utils import timezone
+from django.utils.formats import date_format
 from playwright.sync_api import expect
 from app.models import Event, User, Venue, Coupon, Ticket
 from app.test.test_e2e.base import BaseE2ETest
@@ -10,6 +11,12 @@ def assert_input_value_equals(locator, expected_value: str):
     actual_value = locator.input_value().replace(",", ".")
     assert actual_value == expected_value, f"Expected '{expected_value}', got '{actual_value}'"
 
+def format_event_datetime(dt):
+    return date_format(
+        timezone.localtime(dt),
+        "l, j \\d\\e F \\d\\e Y, H:i",  # Formato: jueves, 1 de mayo de 2025, 19:00
+        use_l10n=True
+    )
 
 class CouponBaseTest(BaseE2ETest):
     """Clase base específica para tests de cupones"""
@@ -27,10 +34,11 @@ class CouponBaseTest(BaseE2ETest):
             city="La Plata"
         )
 
+        self.event_date = (timezone.now() + datetime.timedelta(days=5)).replace(second=0, microsecond=0)
         self.event_mocked = Event.objects.create(
             title="Evento de prueba 1",
             description="Descripción del evento 1",
-            scheduled_at="2026-12-01T10:00:00Z",
+            scheduled_at=self.event_date,
             organizer=self.mocked_organizer_user,
             venue=self.mocked_venue,
             price=50.00
@@ -39,11 +47,9 @@ class CouponBaseTest(BaseE2ETest):
         self.mocked_coupon = Coupon.objects.create(
             event=self.event_mocked,
             discount_percent=10,
-            expiration_date="2026-12-01T10:00:00Z",
+            expiration_date=self.event_date,
             organizer=self.mocked_organizer_user
         )
-
-
 
 class CouponDisplayTest(CouponBaseTest):
     """Tests de visualización de cupones para el organizador"""
@@ -88,7 +94,10 @@ class CouponCreateTest(CouponBaseTest):
         expiration_input = self.page.locator("input#expiration_date")
         
         discount_input.fill("15")
-        expiration_input.fill("2026-12-31T23:59")
+
+        self.new_date_expiration = (timezone.now() + datetime.timedelta(days=15)).replace(second=0, microsecond=0)
+        expiration_input = self.page.locator("input#expiration_date")
+        expiration_input.fill(self.new_date_expiration.strftime("%Y-%m-%dT%H:%M"))
 
         submit_btn = self.page.locator("button[type='submit'].btn-primary")
         submit_btn.click()

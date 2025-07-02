@@ -1,7 +1,16 @@
+import datetime
 from django.test import Client, TestCase
+from django.utils.formats import date_format
 from django.urls import reverse
 from django.utils import timezone
 from app.models import Notification, User, Event, Venue, Ticket
+
+def format_event_datetime(dt):
+    return date_format(
+        timezone.localtime(dt),
+        "l, j \\d\\e F \\d\\e Y, H:i",  # Formato: jueves, 1 de mayo de 2025, 19:00
+        use_l10n=True
+    )
 
 class BaseNotificationTestCase(TestCase):
     def setUp(self):
@@ -23,10 +32,11 @@ class BaseNotificationTestCase(TestCase):
             city="CABA"
         )
 
+        self.event_date = (timezone.now() + datetime.timedelta(days=5)).replace(second=0, microsecond=0)
         self.event_mocked = Event.objects.create(
             title="Mocked Event",
             description="Test description",
-            scheduled_at=timezone.make_aware(timezone.datetime(int(2025), int(5), int(15), int(10), int(0))),
+            scheduled_at=self.event_date,
             organizer=self.mocked_organizer_user,
             venue=self.mocked_venue1
         )
@@ -82,10 +92,13 @@ class NotificationsByEventChangeTest(BaseNotificationTestCase):
         expected_status_code = 302
 
         event_id = self.event_mocked.pk
+
+        future_date = (timezone.now() + datetime.timedelta(days=7)).replace(second=0, microsecond=0)
+
         mocked_data = {
             "title": self.event_mocked.title,
             "description": self.event_mocked.description,
-            "date": "2025-06-15",
+            "date": future_date.strftime("%Y-%m-%d"),
             "time": "16:45",
             "venue": self.event_mocked.venue.pk
         }

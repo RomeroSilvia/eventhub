@@ -1,3 +1,4 @@
+import datetime
 from django.urls import reverse
 from playwright.sync_api import expect
 from django.contrib.auth import get_user_model
@@ -23,10 +24,11 @@ class RatingAverageVisibilityTest(BaseE2ETest):
             capacity=200
         )
         
+        self.event_date = (timezone.now() + datetime.timedelta(days=7)).replace(second=0, microsecond=0)
         self.mocked_event1 = Event.objects.create(
             title='Concierto de prueba',
             description='Un evento de integración',
-            scheduled_at=timezone.now(),
+            scheduled_at=self.event_date,
             organizer=self.mocked_user,
             venue=self.mocked_venue
         )

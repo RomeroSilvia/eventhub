@@ -1,3 +1,5 @@
+import datetime
+from django.utils import timezone
 from django.test import TestCase
 from app.models import Notification, User, Event, NotificationUser, Venue, Ticket, NotificationUser
 from app.validations.notifications import createNotificationValidations
@@ -16,7 +18,7 @@ class NotificationModelTest(TestCase):
         self.event_mocked = Event.objects.create(
             title="Mocked Event",
             description="Test description",
-            scheduled_at="2025-12-01T10:00:00Z",
+            scheduled_at=timezone.now() + datetime.timedelta(days=10),
             organizer=self.mocked_user,
             venue=self.mocked_venue
         )

@@ -1,3 +1,5 @@
+import datetime
+from django.utils import timezone
 from playwright.sync_api import expect
 from app.models import Notification, User, Event, Venue, Ticket
 from app.test.test_e2e.base import BaseE2ETest
@@ -16,10 +18,11 @@ class NotificationBaseTest(BaseE2ETest):
             city="Buenos Aires"
         )
 
+        self.event_date = (timezone.now() + datetime.timedelta(days=7)).replace(second=0, microsecond=0)
         self.event_mocked = Event.objects.create(
             title="Mocked Event",
             description="Test description",
-            scheduled_at="2025-12-01T10:00:00Z",
+            scheduled_at=self.event_date,
             organizer=self.mocked_organizer_user,
             venue=self.mocked_venue,
             price=100.00
@@ -95,8 +98,9 @@ class NotificationByEventChangeTest(NotificationBaseTest):
         description = self.page.get_by_label("Descripción")
         description.fill("Descripcion Editada")
 
-        date = self.page.get_by_label("Fecha")
-        date.fill("2025-04-20")
+        self.new_date = (timezone.now() + datetime.timedelta(days=15)).replace(second=0, microsecond=0)
+        date_input = self.page.get_by_label("Fecha")
+        date_input.fill(self.new_date.strftime("%Y-%m-%d"))
 
         time = self.page.get_by_label("Hora")
         time.fill("04:00")
