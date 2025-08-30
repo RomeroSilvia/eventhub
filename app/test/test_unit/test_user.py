@@ -123,3 +123,6 @@ class UserModelTest(TestCase):
         self.assertIn("email", errors)
         self.assertIn("username", errors)
         self.assertIn("password", errors)
+
+    def test_not_passed(self):
+        self.assertTrue(False)
